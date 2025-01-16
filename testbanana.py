@@ -42,6 +42,21 @@ class Watermelon(Widget):
     def reset(self):
         self.watermelon.pos = (randint(0, Window.width - 100), Window.height - 100)
 
+class Boom(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        with self.canvas:
+            self.boom = Rectangle(source='images/boom-removebg-preview.png', size=(150, 150), pos=(randint(0, Window.width - 100), Window.height - 100))
+        self.velocity_y = -800
+
+    def move(self, dt):
+        wx, wy = self.boom.pos
+        wy += self.velocity_y * dt
+        self.boom.pos = (wx, wy)
+
+    def reset(self):
+        self.boom.pos = (randint(0, Window.width - 100), Window.height - 100)
+
 class stick(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -71,12 +86,14 @@ class bananaCatchGame(Widget):
         self.paddle = stick()
         self.banana = banana()
         self.watermelon = Watermelon()
+        self.boom = Boom()
         self.add_widget(self.paddle)
         self.add_widget(self.banana)
         self.add_widget(self.watermelon)
+        self.add_widget(self.boom)
 
         # เพิ่ม Label สำหรับแสดงคะแนน
-        self.score_label = Label(text=f"Score: {self.score}", font_size=32, pos=(20, Window.height - 50), size_hint=(None, None))
+        self.score_label = Label(text=f"Score: {self.score}", font_size=50, pos=(70, Window.height - 80), size_hint=(None, None))
         self.add_widget(self.score_label)
 
         # รับคีย์บอร์ด
@@ -106,6 +123,7 @@ class bananaCatchGame(Widget):
         self.paddle.move(dt, self.pressed_keys)
         self.banana.move(dt)
         self.watermelon.move(dt)
+        self.boom.move(dt)
 
         # ตรวจจับการชน
         if self.check_collision(self.banana.banana):
@@ -118,14 +136,20 @@ class bananaCatchGame(Widget):
             self.update_score()
             self.watermelon.reset()
 
+        if self.check_collision(self.boom.boom):
+            self.score -= 30
+            self.update_score()
+            self.boom.reset()
+
         # ตรวจสอบว่าผลไม้ตกถึงพื้น
         if self.banana.banana.pos[1] < 0:
-            print("Game Over!")
             self.banana.reset()
 
         if self.watermelon.watermelon.pos[1] < 0:
-            print("Game Over!")
             self.watermelon.reset()
+
+        if self.boom.boom.pos[1] < 0:
+            self.boom.reset()
 
     def check_collision(self, fruit):
         px, py = self.paddle.paddle.pos
