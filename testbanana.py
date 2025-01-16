@@ -58,13 +58,16 @@ class stick(Widget):
     def move(self, dt, pressed_keys):
         # การเคลื่อนไหว paddle
         cur_x, cur_y = self.paddle.pos
-        step = 300 * dt  # ความเร็วของ paddle
+        step = self.velocity_x * dt  # ความเร็วของ paddle
         if 'a' in pressed_keys and cur_x > 0:
             cur_x -= step
         if 'd' in pressed_keys and cur_x < Window.width - self.paddle.size[0]:
             cur_x += step
         self.paddle.pos = (cur_x, cur_y)
 
+    def increase_speed(self, increment):
+        # เพิ่มความเร็วของ paddle
+        self.velocity_x += increment
 
 
 class bananaCatchGame(Widget):
