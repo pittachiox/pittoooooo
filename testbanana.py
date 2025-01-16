@@ -1,6 +1,7 @@
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.graphics import Rectangle
+from kivy.uix.label import Label
 from kivy.core.window import Window
 from kivy.clock import Clock
 from random import randint
@@ -15,50 +16,42 @@ class banana(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         with self.canvas:
-            # ใช้ภาพกล้วยแทนลูกบอล
             self.banana = Rectangle(source='images/banana-removebg-preview.png', size=(80, 80), pos=(randint(0, Window.width - 80), Window.height - 80))
-        self.velocity_y = -400  # ความเร็วของลูกบอลในแนวตั้ง
+        self.velocity_y = -400
 
     def move(self, dt):
-        # การเคลื่อนไหวลูกบอล
         bx, by = self.banana.pos
         by += self.velocity_y * dt
         self.banana.pos = (bx, by)
 
     def reset(self):
-        # ตั้งค่าลูกบอลใหม่
         self.banana.pos = (randint(0, Window.width - 50), Window.height - 50)
 
 class Watermelon(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         with self.canvas:
-            # ใช้ภาพแตงโมแทนลูกบอล
             self.watermelon = Rectangle(source='images/watermelon-removebg-preview.png', size=(100, 100), pos=(randint(0, Window.width - 100), Window.height - 100))
-        self.velocity_y = -600  # ความเร็วของแตงโมในแนวตั้ง
+        self.velocity_y = -600
 
     def move(self, dt):
-        # การเคลื่อนไหวแตงโม
         wx, wy = self.watermelon.pos
         wy += self.velocity_y * dt
         self.watermelon.pos = (wx, wy)
 
     def reset(self):
-        # ตั้งค่าแตงโมใหม่
         self.watermelon.pos = (randint(0, Window.width - 100), Window.height - 100)
 
 class stick(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         with self.canvas:
-            # ใช้ภาพกิ่งไม้แทน paddle
             self.paddle = Rectangle(source='images/stick-removebg-preview.png', size=(200, 150), pos=(Window.width / 2 - 100, 50))
         self.velocity_x = 1200
 
     def move(self, dt, pressed_keys):
-        # การเคลื่อนไหว paddle
         cur_x, cur_y = self.paddle.pos
-        step = self.velocity_x * dt  # ความเร็วของ paddle
+        step = self.velocity_x * dt
         if 'a' in pressed_keys and cur_x > 0:
             cur_x -= step
         if 'd' in pressed_keys and cur_x < Window.width - self.paddle.size[0]:
@@ -66,7 +59,6 @@ class stick(Widget):
         self.paddle.pos = (cur_x, cur_y)
 
     def increase_speed(self, increment):
-        # เพิ่มความเร็วของ paddle
         self.velocity_x += increment
 
 
@@ -75,13 +67,17 @@ class bananaCatchGame(Widget):
         super().__init__(**kwargs)
         self.score = 0
 
-        # สร้าง stick, banana และ Watermelon
+        # สร้าง stick, banana, และ watermelon
         self.paddle = stick()
         self.banana = banana()
-        self.watermelon = Watermelon()  # เปลี่ยนชื่อเป็นตัวพิมพ์ใหญ่
+        self.watermelon = Watermelon()
         self.add_widget(self.paddle)
         self.add_widget(self.banana)
         self.add_widget(self.watermelon)
+
+        # เพิ่ม Label สำหรับแสดงคะแนน
+        self.score_label = Label(text=f"Score: {self.score}", font_size=32, pos=(20, Window.height - 50), size_hint=(None, None))
+        self.add_widget(self.score_label)
 
         # รับคีย์บอร์ด
         self._keyboard = Window.request_keyboard(self._on_keyboard_closed, self)
@@ -107,7 +103,6 @@ class bananaCatchGame(Widget):
         self.pressed_keys.discard(text)
 
     def update_game(self, dt):
-        # อัปเดตการเคลื่อนไหวของ paddle, banana และ watermelon
         self.paddle.move(dt, self.pressed_keys)
         self.banana.move(dt)
         self.watermelon.move(dt)
@@ -115,12 +110,12 @@ class bananaCatchGame(Widget):
         # ตรวจจับการชน
         if self.check_collision(self.banana.banana):
             self.score += 1
-            print(f"Score: {self.score}")
+            self.update_score()
             self.banana.reset()
 
         if self.check_collision(self.watermelon.watermelon):
             self.score += 15
-            print(f"Score: {self.score}")
+            self.update_score()
             self.watermelon.reset()
 
         # ตรวจสอบว่าผลไม้ตกถึงพื้น
@@ -133,7 +128,6 @@ class bananaCatchGame(Widget):
             self.watermelon.reset()
 
     def check_collision(self, fruit):
-        # ตรวจสอบการชนระหว่าง paddle และผลไม้
         px, py = self.paddle.paddle.pos
         fx, fy = fruit.pos
         fw, fh = fruit.size
@@ -143,6 +137,9 @@ class bananaCatchGame(Widget):
             return True
         return False
 
+    def update_score(self):
+        self.score_label.text = f"Score: {self.score}"
+
 class BananaCatchApp(App):
     def build(self):
         return bananaCatchGame()
@@ -150,5 +147,3 @@ class BananaCatchApp(App):
 
 if __name__ == '__main__':
     BananaCatchApp().run()
-
-
