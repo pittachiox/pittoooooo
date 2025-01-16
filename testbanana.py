@@ -17,7 +17,7 @@ class banana(Widget):
         super().__init__(**kwargs)
         with self.canvas:
             self.banana = Rectangle(source='images/banana-removebg-preview.png', size=(80, 80), pos=(randint(0, Window.width - 80), Window.height - 80))
-        self.velocity_y = -400
+        
 
     def move(self, dt):
         bx, by = self.banana.pos
@@ -32,7 +32,7 @@ class Watermelon(Widget):
         super().__init__(**kwargs)
         with self.canvas:
             self.watermelon = Rectangle(source='images/watermelon-removebg-preview.png', size=(100, 100), pos=(randint(0, Window.width - 100), Window.height - 100))
-        self.velocity_y = -600
+        self.velocity_y = -800
 
     def move(self, dt):
         wx, wy = self.watermelon.pos
@@ -84,11 +84,17 @@ class bananaCatchGame(Widget):
 
         # สร้าง stick, banana, และ watermelon
         self.paddle = stick()
-        self.banana = banana()
+        self.banana1 = banana()
+        self.banana2 = banana()
         self.watermelon = Watermelon()
         self.boom = Boom()
+
+        self.banana1.velocity_y = -500
+        self.banana2.velocity_y = -700
+
         self.add_widget(self.paddle)
-        self.add_widget(self.banana)
+        self.add_widget(self.banana1)
+        self.add_widget(self.banana2)
         self.add_widget(self.watermelon)
         self.add_widget(self.boom)
 
@@ -121,15 +127,21 @@ class bananaCatchGame(Widget):
 
     def update_game(self, dt):
         self.paddle.move(dt, self.pressed_keys)
-        self.banana.move(dt)
+        self.banana1.move(dt)
+        self.banana2.move(dt)
         self.watermelon.move(dt)
         self.boom.move(dt)
 
         # ตรวจจับการชน
-        if self.check_collision(self.banana.banana):
-            self.score += 1
+        if self.check_collision(self.banana1.banana):
+            self.score += 5
             self.update_score()
-            self.banana.reset()
+            self.banana1.reset()
+
+        if self.check_collision(self.banana2.banana):
+            self.score += 5
+            self.update_score()
+            self.banana2.reset()
 
         if self.check_collision(self.watermelon.watermelon):
             self.score += 15
@@ -142,8 +154,11 @@ class bananaCatchGame(Widget):
             self.boom.reset()
 
         # ตรวจสอบว่าผลไม้ตกถึงพื้น
-        if self.banana.banana.pos[1] < 0:
-            self.banana.reset()
+        if self.banana1.banana.pos[1] < 0:
+            self.banana1.reset()
+
+        if self.banana2.banana.pos[1] < 0:
+            self.banana2.reset()
 
         if self.watermelon.watermelon.pos[1] < 0:
             self.watermelon.reset()
