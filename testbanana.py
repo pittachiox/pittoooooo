@@ -18,7 +18,7 @@ class banana(Widget):
         with self.canvas:
             self.banana = Rectangle(source='images/banana-removebg-preview.png', size=size, pos=(randint(0, Window.width - size[0]), Window.height - size[1]))
         self.size = size  # เก็บขนาดไว้ในวัตถุ
-        self.velocity_y = -500  # ค่าเริ่มต้น (แก้ไขได้ภายนอก)
+        
 
     def move(self, dt):
         bx, by = self.banana.pos
@@ -34,7 +34,7 @@ class Watermelon(Widget):
         super().__init__(**kwargs)
         with self.canvas:
             self.watermelon = Rectangle(source='images/watermelon-removebg-preview.png', size=(120, 120), pos=(randint(0, Window.width - 100), Window.height - 100))
-        self.velocity_y = -800
+        self.velocity_y = -600
 
     def move(self, dt):
         wx, wy = self.watermelon.pos
@@ -45,20 +45,20 @@ class Watermelon(Widget):
         self.watermelon.pos = (randint(0, Window.width - 100), Window.height - 100)
 
 
-class Coin(Widget):
+class Goldencoin(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         with self.canvas:
-            self.coin = Rectangle(source='images/coin-removebg-preview.png', size=(50, 50), pos=(randint(0, Window.width - 100), Window.height - 100))
+            self.goldencoin = Rectangle(source='images/goldencoin-removebg-preview.png', size=(50, 50), pos=(randint(0, Window.width - 100), Window.height - 100))
         self.velocity_y = -800
 
     def move(self, dt):
-        wx, wy = self.coin.pos
+        wx, wy = self.goldencoin.pos
         wy += self.velocity_y * dt
-        self.coin.pos = (wx, wy)
+        self.goldencoin.pos = (wx, wy)
 
     def reset(self):
-        self.coin.pos = (randint(0, Window.width - 100), Window.height - 100)
+        self.goldencoin.pos = (randint(0, Window.width - 100), Window.height - 100)
 
 class Boom(Widget):
     def __init__(self, **kwargs):
@@ -106,7 +106,7 @@ class bananaCatchGame(Widget):
         self.banana2 = banana()
         self.watermelon = Watermelon()
         self.boom = Boom()
-        self.coin = Coin()
+        self.goldencoin = Goldencoin()
 
 
         self.banana1 = banana(size=(80, 80))  # กล้วยเล็ก
@@ -121,7 +121,7 @@ class bananaCatchGame(Widget):
         self.add_widget(self.banana2)
         self.add_widget(self.watermelon)
         self.add_widget(self.boom)
-        self.add_widget(self.coin)
+        self.add_widget(self.goldencoin)
 
         # เพิ่ม Label สำหรับแสดงคะแนน
         self.score_label = Label(text=f"Score: {self.score}", font_size=50, pos=(70, Window.height - 80), size_hint=(None, None))
@@ -156,7 +156,7 @@ class bananaCatchGame(Widget):
         self.banana2.move(dt)
         self.watermelon.move(dt)
         self.boom.move(dt)
-        self.coin.move(dt)
+        self.goldencoin.move(dt)
 
         # ตรวจจับการชน
         if self.check_collision(self.banana1.banana):
@@ -179,10 +179,10 @@ class bananaCatchGame(Widget):
             self.update_score()
             self.boom.reset()
 
-        if self.check_collision(self.coin.coin):
+        if self.check_collision(self.goldencoin.goldencoin):
             self.score += 25
             self.update_score()
-            self.coin.reset()
+            self.goldencoin.reset()
 
         # ตรวจสอบว่าผลไม้ตกถึงพื้น
         if self.banana1.banana.pos[1] < 0:
@@ -197,8 +197,8 @@ class bananaCatchGame(Widget):
         if self.boom.boom.pos[1] < 0:
             self.boom.reset()
 
-        if self.coin.coin.pos[1] < 0:
-            self.coin.reset()
+        if self.goldencoin.goldencoin.pos[1] < 0:
+            self.goldencoin.reset()
 
     def check_collision(self, fruit):
         px, py = self.paddle.paddle.pos
