@@ -94,11 +94,29 @@ class stick(Widget):
     def increase_speed(self, increment):
         self.velocity_x += increment
 
+class GameOverWidget(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # สร้าง Label สำหรับข้อความ "Game Over"
+        self.label = Label(
+            text="GAME OVER",
+            font_size=100,
+            pos=(Window.width / 2 - 200, Window.height / 2),
+            size_hint=(None, None),
+            color=(1, 0, 0, 1)
+        )
+        self.add_widget(self.label)
+        self.opacity = 0  # ซ่อน Widget ไว้ในตอนเริ่ม
+
+    def show(self):
+        self.opacity = 1  # แสดงข้อความ
+
 
 class bananaCatchGame(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.score = 0
+        self.gameover = False
 
         # สร้าง stick, banana, และ watermelon
         self.paddle = stick()
@@ -127,6 +145,10 @@ class bananaCatchGame(Widget):
         self.score_label = Label(text=f"Score: {self.score}", font_size=50, pos=(70, Window.height - 80), size_hint=(None, None))
         self.add_widget(self.score_label)
 
+        # เพิ่ม Widget "Game Over"
+        self.game_over_widget = GameOverWidget()
+        self.add_widget(self.game_over_widget)
+
         # รับคีย์บอร์ด
         self._keyboard = Window.request_keyboard(self._on_keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_key_down)
@@ -151,6 +173,9 @@ class bananaCatchGame(Widget):
         self.pressed_keys.discard(text)
 
     def update_game(self, dt):
+        if self.gameover:  # ถ้าเกมจบแล้ว ให้หยุดการอัปเดตเกม
+            return
+
         self.paddle.move(dt, self.pressed_keys)
         self.banana1.move(dt)
         self.banana2.move(dt)
@@ -174,15 +199,13 @@ class bananaCatchGame(Widget):
             self.update_score()
             self.watermelon.reset()
 
-        if self.check_collision(self.boom.boom):
-            self.score -= 30
-            self.update_score()
-            self.boom.reset()
-
         if self.check_collision(self.goldencoin.goldencoin):
             self.score += 25
             self.update_score()
             self.goldencoin.reset()
+
+        if self.check_collision(self.boom.boom):
+            self.end_game()  # จบเกมเมื่อชนกับ Boom
 
         # ตรวจสอบว่าผลไม้ตกถึงพื้น
         if self.banana1.banana.pos[1] < 0:
@@ -212,6 +235,16 @@ class bananaCatchGame(Widget):
 
     def update_score(self):
         self.score_label.text = f"Score: {self.score}"
+
+    def end_game(self):
+        self.game_over = True  # เปลี่ยนสถานะเกม
+        self.game_over_widget.show()  # แสดง Widget "Game Over"
+        # ปลดล็อกการกดปุ่ม
+        if self._keyboard:
+            self._keyboard.unbind(on_key_down=self._on_key_down)
+            self._keyboard.unbind(on_key_up=self._on_key_up)
+            self._keyboard = None
+
 
 class BananaCatchApp(App):
     def build(self):
