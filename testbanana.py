@@ -49,7 +49,7 @@ class Goldencoin(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         with self.canvas:
-            self.goldencoin = Rectangle(source='images/goldencoin-removebg-preview.png', size=(50, 50), pos=(randint(0, Window.width - 100), Window.height - 100))
+            self.goldencoin = Rectangle(source='images/goldencoin-removebg-preview.png', size=(60, 60), pos=(randint(0, Window.width - 100), Window.height - 100))
         self.velocity_y = -800
 
     def move(self, dt):
@@ -59,6 +59,22 @@ class Goldencoin(Widget):
 
     def reset(self):
         self.goldencoin.pos = (randint(0, Window.width - 100), Window.height - 100)
+
+
+class Greycoin(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        with self.canvas:
+            self.greycoin = Rectangle(source='images/greycoin-removebg-preview.png', size=(90, 90), pos=(randint(0, Window.width - 100), Window.height - 100))
+        self.velocity_y = -700
+
+    def move(self, dt):
+        wx, wy = self.greycoin.pos
+        wy += self.velocity_y * dt
+        self.greycoin.pos = (wx, wy)
+
+    def reset(self):
+        self.greycoin.pos = (randint(0, Window.width - 100), Window.height - 100)
 
 class Boom(Widget):
     def __init__(self, **kwargs):
@@ -100,8 +116,8 @@ class GameOverWidget(Widget):
         # สร้าง Label สำหรับข้อความ "Game Over"
         self.label = Label(
             text="GAME OVER",
-            font_size=100,
-            pos=(Window.width / 2 - 200, Window.height / 2),
+            font_size=200,
+            pos=(Window.width / 2 - 100, Window.height / 2),
             size_hint=(None, None),
             color=(1, 0, 0, 1)
         )
@@ -125,6 +141,7 @@ class bananaCatchGame(Widget):
         self.watermelon = Watermelon()
         self.boom = Boom()
         self.goldencoin = Goldencoin()
+        self.greycoin = Greycoin()
 
 
         self.banana1 = banana(size=(80, 80))  # กล้วยเล็ก
@@ -140,6 +157,7 @@ class bananaCatchGame(Widget):
         self.add_widget(self.watermelon)
         self.add_widget(self.boom)
         self.add_widget(self.goldencoin)
+        self.add_widget(self.greycoin)
 
         # เพิ่ม Label สำหรับแสดงคะแนน
         self.score_label = Label(text=f"Score: {self.score}", font_size=50, pos=(70, Window.height - 80), size_hint=(None, None))
@@ -182,6 +200,7 @@ class bananaCatchGame(Widget):
         self.watermelon.move(dt)
         self.boom.move(dt)
         self.goldencoin.move(dt)
+        self.greycoin.move(dt)
 
         # ตรวจจับการชน
         if self.check_collision(self.banana1.banana):
@@ -204,6 +223,11 @@ class bananaCatchGame(Widget):
             self.update_score()
             self.goldencoin.reset()
 
+        if self.check_collision(self.greycoin.greycoin):
+            self.score += 20
+            self.update_score()
+            self.greycoin.reset()
+
         if self.check_collision(self.boom.boom):
             self.end_game()  # จบเกมเมื่อชนกับ Boom
 
@@ -222,6 +246,9 @@ class bananaCatchGame(Widget):
 
         if self.goldencoin.goldencoin.pos[1] < 0:
             self.goldencoin.reset()
+
+        if self.greycoin.greycoin.pos[1] < 0:
+            self.greycoin.reset()
 
     def check_collision(self, fruit):
         px, py = self.paddle.paddle.pos
