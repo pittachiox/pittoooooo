@@ -128,11 +128,26 @@ class GameOverWidget(Widget):
         self.opacity = 1  # แสดงข้อความ
 
 
+class GameState(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.is_game_over = False  # สถานะเริ่มต้นของเกม
+
+    def set_game_over(self):
+        self.is_game_over = True
+
+    def reset_game(self):
+        self.is_game_over = False
+
+
 class bananaCatchGame(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.score = 0
-        self.gameover = False
+    
+        # สร้าง GameState Widget
+        self.game_state = GameState()
+        self.add_widget(self.game_state)
 
         # สร้าง stick, banana, และ watermelon
         self.paddle = stick()
@@ -191,7 +206,8 @@ class bananaCatchGame(Widget):
         self.pressed_keys.discard(text)
 
     def update_game(self, dt):
-        if self.gameover:  # ถ้าเกมจบแล้ว ให้หยุดการอัปเดตเกม
+        # หยุดเกมถ้า `is_game_over` เป็น True
+        if self.game_state.is_game_over:
             return
 
         self.paddle.move(dt, self.pressed_keys)
@@ -264,13 +280,9 @@ class bananaCatchGame(Widget):
         self.score_label.text = f"Score: {self.score}"
 
     def end_game(self):
-        self.game_over = True  # เปลี่ยนสถานะเกม
-        self.game_over_widget.show()  # แสดง Widget "Game Over"
-        # ปลดล็อกการกดปุ่ม
-        if self._keyboard:
-            self._keyboard.unbind(on_key_down=self._on_key_down)
-            self._keyboard.unbind(on_key_up=self._on_key_up)
-            self._keyboard = None
+        # เรียกให้ GameState หยุดเกม
+        self.game_state.set_game_over()
+        self.game_over_widget.show()
 
 
 class BananaCatchApp(App):
