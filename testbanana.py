@@ -110,6 +110,39 @@ class stick(Widget):
     def increase_speed(self, increment):
         self.velocity_x += increment
 
+
+class BoomManager(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.booms = []  # เก็บรายการระเบิด
+        self.active = False  # สถานะเริ่มต้น
+
+    def add_boom(self, position=None):
+        """สร้างระเบิดใหม่และเพิ่มในรายการ"""
+        boom = Boom()
+        if position:
+            boom.boom.pos = position
+        self.booms.append(boom)
+        self.add_widget(boom)
+
+    def activate(self):
+        """เปิดใช้งานระเบิดทั้งหมด"""
+        self.active = True
+
+    def deactivate(self):
+        """ปิดการใช้งานระเบิดทั้งหมด"""
+        self.active = False
+
+    def move(self, dt):
+        """ขยับระเบิดทั้งหมด"""
+        if not self.active:
+            return
+        for boom in self.booms:
+            boom.move(dt)
+            if boom.boom.pos[1] < 0:  # รีเซ็ตถ้าหลุดจากหน้าจอ
+                boom.reset()
+
+
 class GameOverWidget(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -148,6 +181,9 @@ class bananaCatchGame(Widget):
         # สร้าง GameState Widget
         self.game_state = GameState()
         self.add_widget(self.game_state)
+
+        self.boom_manager = BoomManager()
+        self.add_widget(self.boom_manager)
 
         # สร้าง stick, banana, และ watermelon
         self.paddle = stick()
@@ -217,6 +253,8 @@ class bananaCatchGame(Widget):
         self.boom.move(dt)
         self.goldencoin.move(dt)
         self.greycoin.move(dt)
+        self.boom_manager.move(dt)
+
 
         # ตรวจจับการชน
         if self.check_collision(self.banana1.banana):
@@ -244,8 +282,15 @@ class bananaCatchGame(Widget):
             self.update_score()
             self.greycoin.reset()
 
-        if self.check_collision(self.boom.boom):
-            self.end_game()  # จบเกมเมื่อชนกับ Boom
+        if self.score == 300 and not self.boom_manager.active:
+            self.boom_manager.activate()
+            self.boom_manager.add_boom()  # สร้างระเบิดลูกใหม่
+            self.boom_manager.add_boom()  # เพิ่มอีกลูก (ตามต้องการ)
+
+        for boom in self.boom_manager.booms:
+            if self.check_collision(boom.boom):
+                self.end_game()
+
 
         # ตรวจสอบว่าผลไม้ตกถึงพื้น
         if self.banana1.banana.pos[1] < 0:
