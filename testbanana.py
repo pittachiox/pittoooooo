@@ -13,11 +13,12 @@ Config.set('kivy', 'keyboard_mode', 'system')
 Window.size = (800, 600)  # ตั้งค่าขนาดหน้าต่าง
 
 class banana(Widget):
-    def __init__(self, **kwargs):
+    def __init__(self, size=(80, 80), **kwargs):
         super().__init__(**kwargs)
         with self.canvas:
-            self.banana = Rectangle(source='images/banana-removebg-preview.png', size=(80, 80), pos=(randint(0, Window.width - 80), Window.height - 80))
-        
+            self.banana = Rectangle(source='images/banana-removebg-preview.png', size=size, pos=(randint(0, Window.width - size[0]), Window.height - size[1]))
+        self.size = size  # เก็บขนาดไว้ในวัตถุ
+        self.velocity_y = -500  # ค่าเริ่มต้น (แก้ไขได้ภายนอก)
 
     def move(self, dt):
         bx, by = self.banana.pos
@@ -25,7 +26,8 @@ class banana(Widget):
         self.banana.pos = (bx, by)
 
     def reset(self):
-        self.banana.pos = (randint(0, Window.width - 50), Window.height - 50)
+        self.banana.pos = (randint(0, Window.width - self.size[0]), Window.height - self.size[1])
+
 
 class Watermelon(Widget):
     def __init__(self, **kwargs):
@@ -89,6 +91,11 @@ class bananaCatchGame(Widget):
         self.watermelon = Watermelon()
         self.boom = Boom()
 
+
+        self.banana1 = banana(size=(80, 80))  # กล้วยเล็ก
+        self.banana2 = banana(size=(120, 120))  # กล้วยใหญ่
+
+        
         self.banana1.velocity_y = -500
         self.banana2.velocity_y = -700
 
@@ -139,7 +146,7 @@ class bananaCatchGame(Widget):
             self.banana1.reset()
 
         if self.check_collision(self.banana2.banana):
-            self.score += 5
+            self.score += 10
             self.update_score()
             self.banana2.reset()
 
