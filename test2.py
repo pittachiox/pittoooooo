@@ -1,5 +1,4 @@
 from kivy.app import App
-from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.widget import Widget
 from kivy.graphics import Rectangle
 from kivy.uix.label import Label
@@ -7,77 +6,11 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from random import randint
 from kivy.config import Config
-from kivy.uix.button import Button
-from kivy.properties import ObjectProperty
 
 # บังคับให้ใช้ System Keyboard
 Config.set('kivy', 'keyboard_mode', 'system')
 
 Window.size = (800, 600)  # ตั้งค่าขนาดหน้าต่าง
-
-
-class StartScreen(Screen):
-    """หน้าจอเริ่มต้น"""
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.layout = Widget()  # ใช้ Widget เป็นพื้นฐาน
-        self.add_widget(self.layout)
-
-        # เพิ่ม Label ชื่อเกม
-        self.label = Label(
-            text="Banana Catch Game",
-            font_size=50,
-            size_hint=(None, None),
-            pos=(Window.width / 2 - 200, Window.height / 2 + 100),
-            color=(1, 1, 1, 1)
-        )
-        self.layout.add_widget(self.label)
-
-        # เพิ่มปุ่ม Start Game
-        self.start_button = Button(
-            text="Start Game",
-            size_hint=(None, None),
-            size=(200, 50),
-            pos=(Window.width / 2 - 100, Window.height / 2 - 50),
-            font_size=20
-        )
-        self.start_button.bind(on_press=self.start_game)
-        self.layout.add_widget(self.start_button)
-
-    def start_game(self, instance):
-        """เปลี่ยนไปหน้าจอเกมเมื่อกดปุ่ม"""
-        self.manager.current = "game_screen"
-
-class GameScreen(Screen):
-    """หน้าจอเกมหลัก"""
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.game = bananaCatchGame()
-        self.add_widget(self.game)
-
-class StartButton(Widget):
-    on_start = ObjectProperty(None)  # กำหนด Property สำหรับ Callback
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # สร้าง Label สำหรับปุ่มเริ่มเกม
-        self.label = Label(
-            text="START GAME",
-            font_size=50,
-            size_hint=(None, None),
-            pos=(Window.width / 2 - 150, Window.height / 2),
-            color=(1, 1, 1, 1)
-        )
-        self.add_widget(self.label)
-
-    def on_touch_down(self, touch):
-        """Callback เมื่อกดปุ่ม"""
-        if self.label.collide_point(*touch.pos):  # ตรวจสอบว่ากดปุ่มหรือไม่
-            if self.on_start:  # ถ้ามี Callback ที่ผูกไว้
-                self.on_start()  # เรียกฟังก์ชัน Callback
-            return True  # ส่งสัญญาณว่ากดปุ่มสำเร็จ
-        return super().on_touch_down(touch)
-
 
 class banana(Widget):
     def __init__(self, size=(80, 80), **kwargs):
@@ -244,14 +177,6 @@ class bananaCatchGame(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.score = 0
-        self.game_started = True
-
-        # เพิ่มปุ่มเริ่มเกม
-        self.start_button = StartButton()
-        self.add_widget(self.start_button)
-
-        # ผูก Callback ให้ปุ่ม
-        self.start_button.on_start = self.start_game  # กำหนดฟังก์ชัน Callback
     
         # สร้าง GameState Widget
         self.game_state = GameState()
@@ -315,12 +240,6 @@ class bananaCatchGame(Widget):
     def _on_key_up(self, keyboard, keycode):
         text = keycode[1]
         self.pressed_keys.discard(text)
-
-    def start_game(self):
-        """ฟังก์ชัน Callback เมื่อเริ่มเกม"""
-        self.remove_widget(self.start_button)  # ลบปุ่มออก
-        self.game_started = True  # ตั้งสถานะว่าเกมเริ่มแล้ว
-        print("Game Started!")  # Debug Message
 
     def update_game(self, dt):
         # หยุดเกมถ้า is_game_over เป็น True
@@ -405,12 +324,6 @@ class bananaCatchGame(Widget):
             return True
         return False
 
-        if not self.game_started:
-            return  # หยุดการทำงานถ้ายังไม่ได้เริ่มเกม
-
-        # ใส่โค้ดอัปเดตเกม เช่น การเคลื่อนไหวของวัตถุหรือการตรวจจับการชน
-        pass
-
     def update_score(self):
         self.score_label.text = f"Score: {self.score}"
 
@@ -422,11 +335,7 @@ class bananaCatchGame(Widget):
 
 class BananaCatchApp(App):
     def build(self):
-        # สร้าง ScreenManager
-        sm = ScreenManager()
-        sm.add_widget(StartScreen(name="start_screen"))  # เพิ่มหน้าจอเริ่มต้น
-        sm.add_widget(GameScreen(name="game_screen"))    # เพิ่มหน้าจอเกม
-        return sm
+        return bananaCatchGame()
 
 
 if __name__ == '__main__':
