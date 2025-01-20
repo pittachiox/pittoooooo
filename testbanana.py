@@ -240,6 +240,49 @@ class GameState(Widget):
         self.is_game_over = False
 
 
+class GameOverScreen(Screen):
+    def __init__(self, final_score, **kwargs):
+        super().__init__(**kwargs)
+        self.final_score = final_score
+        self.layout = Widget()
+        self.add_widget(self.layout)
+
+        # เพิ่มข้อความ "Game Over"
+        self.label = Label(
+            text="GAME OVER",
+            font_size=100,
+            pos=(Window.width / 2 - 150, Window.height / 2 + 100),
+            size_hint=(None, None),
+            color=(1, 0, 0, 1)
+        )
+        self.layout.add_widget(self.label)
+
+        # แสดงคะแนนสุดท้าย
+        self.score_label = Label(
+            text=f"Final Score: {self.final_score}",
+            font_size=50,
+            pos=(Window.width / 2 - 150, Window.height / 2 - 50),
+            size_hint=(None, None),
+            color=(1, 1, 1, 1)
+        )
+        self.layout.add_widget(self.score_label)
+
+        # ปุ่มเริ่มเกมใหม่
+        self.retry_button = Button(
+            text="Retry",
+            size_hint=(None, None),
+            size=(200, 50),
+            pos=(Window.width / 2 - 100, Window.height / 2 - 200),
+            font_size=20
+        )
+        self.retry_button.bind(on_press=self.restart_game)
+        self.layout.add_widget(self.retry_button)
+
+    def restart_game(self, instance):
+        """เริ่มเกมใหม่"""
+        self.manager.current = "game_screen"  # เปลี่ยนกลับไปที่หน้าจอเกม
+
+
 class bananaCatchGame(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -417,7 +460,13 @@ class bananaCatchGame(Widget):
     def end_game(self):
         # เรียกให้ GameState หยุดเกม
         self.game_state.set_game_over()
-        self.game_over_widget.show()
+
+        # เปลี่ยนหน้าจอไปยัง GameOverScreen พร้อมส่งคะแนน
+        game_over_screen = self.parent.manager.get_screen("game_over_screen")
+        game_over_screen.final_score = self.score
+        game_over_screen.score_label.text = f"Final Score: {self.score}"
+        self.parent.manager.current = "game_over_screen"
+
 
 
 class BananaCatchApp(App):
@@ -426,8 +475,11 @@ class BananaCatchApp(App):
         sm = ScreenManager()
         sm.add_widget(StartScreen(name="start_screen"))  # เพิ่มหน้าจอเริ่มต้น
         sm.add_widget(GameScreen(name="game_screen"))    # เพิ่มหน้าจอเกม
+        sm.add_widget(GameOverScreen(name="game_over_screen", final_score=0))  # เพิ่มหน้าจอเกมจบ
         return sm
 
 
+
 if __name__ == '__main__':
+    
     BananaCatchApp().run()
