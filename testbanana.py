@@ -283,6 +283,50 @@ class GameOverScreen(Screen):
         self.manager.current = "game_screen"  # เปลี่ยนกลับไปที่หน้าจอเกม
 
 
+class GameOverScreen(Screen):
+    def __init__(self, final_score, **kwargs):
+        super().__init__(**kwargs)
+        self.final_score = final_score
+        self.layout = Widget()
+        self.add_widget(self.layout)
+
+        # เพิ่มภาพพื้นหลัง
+        with self.canvas.before:
+            self.background = Rectangle(source="images/gameover.png", size=Window.size, pos=(0, 0))
+
+        # แสดงคะแนนสุดท้าย
+        self.score_label = Label(
+            text=f"Final Score: {self.final_score}",
+            font_size=50,
+            pos=(Window.width / 2 - 150, Window.height / 4 - 50),
+            size_hint=(None, None),
+            color=(1, 1, 1, 1)
+        )
+        self.layout.add_widget(self.score_label)
+
+        # ปุ่มเริ่มเกมใหม่
+        self.retry_button = Button(
+            text="Retry",
+            size_hint=(None, None),
+            size=(200, 50),
+            pos=(Window.width / 2 - 100, Window.height / 2 - 200),
+            font_size=20,
+            background_normal="images/retry_button_normal.png",  # ปุ่มขณะไม่ได้กด
+            background_down="images/retry_button_down.png"       # ปุ่มขณะกด
+        )
+        self.retry_button.bind(on_press=self.restart_game)
+        self.layout.add_widget(self.retry_button)
+
+    def restart_game(self, instance):
+        """เริ่มเกมใหม่"""
+        self.manager.current = "game_screen"  # เปลี่ยนกลับไปที่หน้าจอเกม
+        # รีเซ็ตคะแนนในหน้าจอเกม
+        game_screen = self.manager.get_screen("game_screen")
+        game_screen.game.score = 0
+        game_screen.game.update_score()
+        game_screen.game.game_state.reset_game()
+
+
 class bananaCatchGame(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
