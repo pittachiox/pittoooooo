@@ -9,6 +9,7 @@ from random import randint
 from kivy.config import Config
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty
+from kivy.uix.image import Image
 
 # บังคับให้ใช้ System Keyboard
 Config.set('kivy', 'keyboard_mode', 'system')
@@ -27,14 +28,14 @@ class StartScreen(Screen):
         with self.canvas.before:
             self.background = Rectangle(source="images/startscreen.png", size=Window.size, pos=(0, 0))
 
-
         # เพิ่มปุ่ม Start Game
         self.start_button = Button(
-            text="Start Game",
             size_hint=(None, None),
-            size=(200, 50),
-            pos=(Window.width / 2 - 100, Window.height / 2 - 50),
-            font_size=20
+            size=(300, 200),
+            pos=(Window.width / 2 - 100, Window.height / 4 - 50),
+            font_size=20,
+            background_normal="images/startbutton-removebg-preview.png",  # ใส่ path รูปภาพสำหรับปุ่ม
+            background_down="images/start_button_image_down.png"  # ใส่ path รูปภาพเมื่อปุ่มถูกกด
         )
         self.start_button.bind(on_press=self.start_game)
         self.layout.add_widget(self.start_button)
@@ -42,6 +43,7 @@ class StartScreen(Screen):
     def start_game(self, instance):
         """เปลี่ยนไปหน้าจอเกมเมื่อกดปุ่ม"""
         self.manager.current = "game_screen"
+
 
 
 class GameScreen(Screen):
