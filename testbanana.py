@@ -20,18 +20,13 @@ class StartScreen(Screen):
     """หน้าจอเริ่มต้น"""
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.layout = Widget()  # ใช้ Widget เป็นพื้นฐาน
+        self.layout = Widget()
         self.add_widget(self.layout)
 
-        # เพิ่ม Label ชื่อเกม
-        self.label = Label(
-            text="Banana Catch Game",
-            font_size=50,
-            size_hint=(None, None),
-            pos=(Window.width / 2 - 200, Window.height / 2 + 100),
-            color=(1, 1, 1, 1)
-        )
-        self.layout.add_widget(self.label)
+        # เพิ่มภาพพื้นหลัง
+        with self.canvas.before:
+            self.background = Rectangle(source="images/startscreen.png", size=Window.size, pos=(0, 0))
+
 
         # เพิ่มปุ่ม Start Game
         self.start_button = Button(
@@ -47,6 +42,7 @@ class StartScreen(Screen):
     def start_game(self, instance):
         """เปลี่ยนไปหน้าจอเกมเมื่อกดปุ่ม"""
         self.manager.current = "game_screen"
+
 
 class GameScreen(Screen):
     """หน้าจอเกมหลัก"""
