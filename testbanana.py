@@ -237,7 +237,9 @@ class GameState(Widget):
         self.is_game_over = True
 
     def reset_game(self):
+        """รีเซ็ตสถานะเกม"""
         self.is_game_over = False
+
 
 
 class GameOverScreen(Screen):
@@ -273,11 +275,9 @@ class GameOverScreen(Screen):
     def restart_game(self, instance):
         """เริ่มเกมใหม่"""
         self.manager.current = "game_screen"  # เปลี่ยนกลับไปที่หน้าจอเกม
-        # รีเซ็ตคะแนนในหน้าจอเกม
-        game_screen = self.manager.get_screen("game_screen")
-        game_screen.game.score = 0
-        game_screen.game.update_score()
-        game_screen.game.game_state.reset_game()
+        game_screen = self.manager.get_screen("game_screen")  # ดึง GameScreen
+        game_screen.game.reset_game()  # เรียกฟังก์ชันรีเซ็ตเกมใน bananaCatchGame
+
 
 
 class bananaCatchGame(Widget):
@@ -463,6 +463,22 @@ class bananaCatchGame(Widget):
         game_over_screen.final_score = self.score
         game_over_screen.score_label.text = f"Final Score: {self.score}"
         self.parent.manager.current = "game_over_screen"
+
+    def reset_game(self):
+        """รีเซ็ตเกมใหม่"""
+        self.score = 0
+        self.update_score()  # รีเซ็ตข้อความคะแนนใน Label
+        self.game_state.reset_game()  # รีเซ็ตสถานะเกม
+        self.boom_manager.deactivate()  # ปิดการใช้งานระเบิด
+        self.boom_manager.booms = []  # ล้างรายการระเบิดทั้งหมด
+
+    # รีเซ็ตตำแหน่งของวัตถุทั้งหมด
+        self.banana1.reset()
+        self.banana2.reset()
+        self.watermelon.reset()
+        self.goldencoin.reset()
+        self.greycoin.reset()
+        self.boom.reset()
 
 
 
