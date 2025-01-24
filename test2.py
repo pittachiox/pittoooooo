@@ -1,4 +1,5 @@
 from kivy.app import App
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.widget import Widget
 from kivy.graphics import Rectangle
 from kivy.uix.label import Label
@@ -6,11 +7,75 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from random import randint
 from kivy.config import Config
+from kivy.uix.button import Button
+from kivy.properties import ObjectProperty
+from kivy.uix.image import Image
 
 # บังคับให้ใช้ System Keyboard
 Config.set('kivy', 'keyboard_mode', 'system')
 
 Window.size = (800, 600)  # ตั้งค่าขนาดหน้าต่าง
+
+
+class StartScreen(Screen):
+    """หน้าจอเริ่มต้น"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.layout = Widget()
+        self.add_widget(self.layout)
+
+        # เพิ่มภาพพื้นหลัง
+        with self.canvas.before:
+            self.background = Rectangle(source="images/startscreen.png", size=Window.size, pos=(0, 0))
+
+        # เพิ่มปุ่ม Start Game
+        self.start_button = Button(
+            size_hint=(None, None),
+            size=(300, 200),
+            pos=(Window.width / 2 - 100, Window.height / 4 - 50),
+            font_size=20,
+            background_normal="images/startbutton-removebg-preview.png",  # ใส่ path รูปภาพสำหรับปุ่ม
+            background_down="images/start_button_image_down.png"  # ใส่ path รูปภาพเมื่อปุ่มถูกกด
+        )
+        self.start_button.bind(on_press=self.start_game)
+        self.layout.add_widget(self.start_button)
+
+    def start_game(self, instance):
+        """เปลี่ยนไปหน้าจอเกมเมื่อกดปุ่ม"""
+        self.manager.current = "game_screen"
+
+
+
+class GameScreen(Screen):
+    """หน้าจอเกมหลัก"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.game = bananaCatchGame()
+        self.add_widget(self.game)
+
+class StartButton(Widget):
+    on_start = ObjectProperty(None)  # กำหนด Property สำหรับ Callback
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # สร้าง Label สำหรับปุ่มเริ่มเกม
+        self.label = Label(
+            text="START GAME",
+            font_size=50,
+            size_hint=(None, None),
+            pos=(Window.width / 2 - 150, Window.height / 2),
+            color=(1, 1, 1, 1)
+        )
+        self.add_widget(self.label)
+
+    def on_touch_down(self, touch):
+        """Callback เมื่อกดปุ่ม"""
+        if self.label.collide_point(*touch.pos):  # ตรวจสอบว่ากดปุ่มหรือไม่
+            if self.on_start:  # ถ้ามี Callback ที่ผูกไว้
+                self.on_start()  # เรียกฟังก์ชัน Callback
+            return True  # ส่งสัญญาณว่ากดปุ่มสำเร็จ
+        return super().on_touch_down(touch)
+
 
 class banana(Widget):
     def __init__(self, size=(80, 80), **kwargs):
@@ -94,8 +159,9 @@ class Boom(Widget):
 class stick(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.default_size = (150, 150)  # ขนาดเริ่มต้น
         with self.canvas:
-            self.paddle = Rectangle(source='images/stick-removebg-preview.png', size=(150, 150), pos=(Window.width / 2 - 100, 50))
+            self.paddle = Rectangle(source='images/stick-removebg-preview.png', size=self.default_size, pos=(Window.width / 2 - 100, 50))
         self.velocity_x = 1200
 
     def move(self, dt, pressed_keys):
@@ -107,8 +173,15 @@ class stick(Widget):
             cur_x += step
         self.paddle.pos = (cur_x, cur_y)
 
-    def increase_speed(self, increment):
-        self.velocity_x += increment
+    def decrease_size(self):
+        """ลดขนาดไม้"""
+        new_width = max(self.paddle.size[0] - 30, 50)  # ลดขนาดลง แต่ไม่เล็กกว่า 50
+        self.paddle.size = (new_width, self.paddle.size[1])
+
+    def reset_size(self):
+        """รีเซ็ตไม้กลับไปที่ขนาดเริ่มต้น"""
+        self.paddle.size = self.default_size
+
 
 
 class BoomManager(Widget):
@@ -170,13 +243,61 @@ class GameState(Widget):
         self.is_game_over = True
 
     def reset_game(self):
+        """รีเซ็ตสถานะเกม"""
         self.is_game_over = False
+
+
+
+class GameOverScreen(Screen):
+    def __init__(self, final_score, **kwargs):
+        super().__init__(**kwargs)
+        self.final_score = final_score
+        self.layout = Widget()
+        self.add_widget(self.layout)
+
+        # เพิ่มภาพพื้นหลัง
+        with self.canvas.before:
+            self.background = Rectangle(source="images/gameover.png", size=Window.size, pos=(0, 0))
+
+        # แสดงคะแนนสุดท้าย
+        self.score_label = Label(
+            text=f"Final Score: {self.final_score}",
+            font_size=50,
+            pos=(Window.width / 2 - 30, Window.height / 4 - 50),
+            size_hint=(None, None),
+            color=(1, 1, 1, 1)
+        )
+        self.layout.add_widget(self.score_label)
+
+        # ปุ่มเริ่มเกมใหม่
+        self.retry_button = Button(
+            size=(400, 150),
+            pos=(Window.width / 2 - 170, Window.height / 4 - 200),
+            background_normal="images/retrybutton-removebg-preview.png",  # ปุ่มขณะไม่ได้กด
+        )
+        self.retry_button.bind(on_press=self.restart_game)
+        self.layout.add_widget(self.retry_button)
+
+    def restart_game(self, instance):
+        """เริ่มเกมใหม่"""
+        self.manager.current = "game_screen"  # เปลี่ยนกลับไปที่หน้าจอเกม
+        game_screen = self.manager.get_screen("game_screen")  # ดึง GameScreen
+        game_screen.game.reset_game()  # เรียกฟังก์ชันรีเซ็ตเกมใน bananaCatchGame
+
 
 
 class bananaCatchGame(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.score = 0
+        self.game_started = True
+
+        # เพิ่มปุ่มเริ่มเกม
+        self.start_button = StartButton()
+        self.add_widget(self.start_button)
+
+        # ผูก Callback ให้ปุ่ม
+        self.start_button.on_start = self.start_game  # กำหนดฟังก์ชัน Callback
     
         # สร้าง GameState Widget
         self.game_state = GameState()
@@ -241,6 +362,12 @@ class bananaCatchGame(Widget):
         text = keycode[1]
         self.pressed_keys.discard(text)
 
+    def start_game(self):
+        """ฟังก์ชัน Callback เมื่อเริ่มเกม"""
+        self.remove_widget(self.start_button)  # ลบปุ่มออก
+        self.game_started = True  # ตั้งสถานะว่าเกมเริ่มแล้ว
+        print("Game Started!")  # Debug Message
+
     def update_game(self, dt):
         # หยุดเกมถ้า is_game_over เป็น True
         if self.game_state.is_game_over:
@@ -254,6 +381,10 @@ class bananaCatchGame(Widget):
         self.goldencoin.move(dt)
         self.greycoin.move(dt)
         self.boom_manager.move(dt)
+
+        # ลดขนาด stick เมื่อคะแนนถึง 400
+        if self.score >= 400 and self.paddle.paddle.size[0] > 50:
+            self.paddle.decrease_size()
 
 
         # ตรวจจับการชน
@@ -324,19 +455,57 @@ class bananaCatchGame(Widget):
             return True
         return False
 
+        if not self.game_started:
+            return  # หยุดการทำงานถ้ายังไม่ได้เริ่มเกม
+
+        # ใส่โค้ดอัปเดตเกม เช่น การเคลื่อนไหวของวัตถุหรือการตรวจจับการชน
+        pass
+
     def update_score(self):
         self.score_label.text = f"Score: {self.score}"
 
     def end_game(self):
         # เรียกให้ GameState หยุดเกม
         self.game_state.set_game_over()
-        self.game_over_widget.show()
+
+        # เปลี่ยนหน้าจอไปยัง GameOverScreen พร้อมส่งคะแนน
+        game_over_screen = self.parent.manager.get_screen("game_over_screen")
+        game_over_screen.final_score = self.score
+        game_over_screen.score_label.text = f"Final Score: {self.score}"
+        self.parent.manager.current = "game_over_screen"
+
+    def reset_game(self):
+        """รีเซ็ตเกมใหม่"""
+        self.score = 0
+        self.update_score()  # รีเซ็ตข้อความคะแนนใน Label
+        self.game_state.reset_game()  # รีเซ็ตสถานะเกม
+        self.boom_manager.deactivate()  # ปิดการใช้งานระเบิด
+        self.boom_manager.booms = []  # ล้างรายการระเบิดทั้งหมด
+
+    # รีเซ็ตตำแหน่งของวัตถุทั้งหมด
+        self.banana1.reset()
+        self.banana2.reset()
+        self.watermelon.reset()
+        self.goldencoin.reset()
+        self.greycoin.reset()
+        self.boom.reset()
+
+        # รีเซ็ตขนาดไม้
+        self.paddle.reset_size()
+
 
 
 class BananaCatchApp(App):
     def build(self):
-        return bananaCatchGame()
+        # สร้าง ScreenManager
+        sm = ScreenManager()
+        sm.add_widget(StartScreen(name="start_screen"))  # เพิ่มหน้าจอเริ่มต้น
+        sm.add_widget(GameScreen(name="game_screen"))    # เพิ่มหน้าจอเกม
+        sm.add_widget(GameOverScreen(name="game_over_screen", final_score=0))  # เพิ่มหน้าจอเกมจบ
+        return sm
+
 
 
 if __name__ == '__main__':
+    
     BananaCatchApp().run()

@@ -159,8 +159,9 @@ class Boom(Widget):
 class stick(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.default_size = (150, 150)  # ขนาดเริ่มต้น
         with self.canvas:
-            self.paddle = Rectangle(source='images/stick-removebg-preview.png', size=(150, 150), pos=(Window.width / 2 - 100, 50))
+            self.paddle = Rectangle(source='images/stick-removebg-preview.png', size=self.default_size, pos=(Window.width / 2 - 100, 50))
         self.velocity_x = 1200
 
     def move(self, dt, pressed_keys):
@@ -172,8 +173,15 @@ class stick(Widget):
             cur_x += step
         self.paddle.pos = (cur_x, cur_y)
 
-    def increase_speed(self, increment):
-        self.velocity_x += increment
+    def decrease_size(self):
+        """ลดขนาดไม้"""
+        new_width = max(self.paddle.size[0] - 30, 50)  # ลดขนาดลง แต่ไม่เล็กกว่า 50
+        self.paddle.size = (new_width, self.paddle.size[1])
+
+    def reset_size(self):
+        """รีเซ็ตไม้กลับไปที่ขนาดเริ่มต้น"""
+        self.paddle.size = self.default_size
+
 
 
 class BoomManager(Widget):
@@ -374,6 +382,10 @@ class bananaCatchGame(Widget):
         self.greycoin.move(dt)
         self.boom_manager.move(dt)
 
+        # ลดขนาด stick เมื่อคะแนนถึง 400
+        if self.score >= 400 and self.paddle.paddle.size[0] > 50:
+            self.paddle.decrease_size()
+
 
         # ตรวจจับการชน
         if self.check_collision(self.banana1.banana):
@@ -477,6 +489,9 @@ class bananaCatchGame(Widget):
         self.goldencoin.reset()
         self.greycoin.reset()
         self.boom.reset()
+
+        # รีเซ็ตขนาดไม้
+        self.paddle.reset_size()
 
 
 
