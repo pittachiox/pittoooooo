@@ -141,6 +141,28 @@ class Greycoin(Widget):
     def reset(self):
         self.greycoin.pos = (randint(0, Window.width - 100), Window.height - 100)
 
+
+class Worm(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        with self.canvas:
+            self.worm = Rectangle(
+                source='images/worm-removebg-preview.png',  # ใส่รูปภาพของหนอน
+                size=(100, 100),  # ขนาดของหนอน
+                pos=(randint(0, Window.width - 100), Window.height - 100)  # ตำแหน่งเริ่มต้น
+            )
+        self.velocity_y = -400  # ความเร็วในการเคลื่อนที่ลง
+
+    def move(self, dt):
+        wx, wy = self.worm.pos
+        wy += self.velocity_y * dt
+        self.worm.pos = (wx, wy)
+
+    def reset(self):
+        """รีเซ็ตตำแหน่งของหนอนให้กลับไปด้านบน"""
+        self.worm.pos = (randint(0, Window.width - 100), Window.height - 100)
+
+
 class Boom(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -314,6 +336,7 @@ class bananaCatchGame(Widget):
         self.boom = Boom()
         self.goldencoin = Goldencoin()
         self.greycoin = Greycoin()
+        self.worm = Worm()
 
 
         self.banana1 = banana(size=(80, 80))  # กล้วยเล็ก
@@ -330,6 +353,7 @@ class bananaCatchGame(Widget):
         self.add_widget(self.boom)
         self.add_widget(self.goldencoin)
         self.add_widget(self.greycoin)
+        self.add_widget(self.worm)
 
         # เพิ่ม Label สำหรับแสดงคะแนน
         self.score_label = Label(text=f"Score: {self.score}", font_size=50, pos=(70, Window.height - 80), size_hint=(None, None))
@@ -381,6 +405,7 @@ class bananaCatchGame(Widget):
         self.goldencoin.move(dt)
         self.greycoin.move(dt)
         self.boom_manager.move(dt)
+        self.worm.move(dt)
 
         # ลดขนาด stick เมื่อคะแนนถึง 400
         if self.score >= 400 and self.paddle.paddle.size[0] > 50:
@@ -413,6 +438,11 @@ class bananaCatchGame(Widget):
             self.update_score()
             self.greycoin.reset()
 
+        if self.check_collision(self.worm.worm):  # ถ้าชนกับหนอน
+            self.score -= 10  # ลดคะแนน
+            self.update_score()
+            self.worm.reset()  # รีเซ็ตหนอนกลับไปด้านบน
+
         if self.check_collision(self.boom.boom):
             self.end_game()
 
@@ -444,6 +474,9 @@ class bananaCatchGame(Widget):
 
         if self.greycoin.greycoin.pos[1] < 0:
             self.greycoin.reset()
+
+        if self.worm.worm.pos[1] < 0:
+            self.worm.reset()
 
     def check_collision(self, fruit):
         px, py = self.paddle.paddle.pos
